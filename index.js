@@ -8,12 +8,12 @@ app.use(express.json());
 app.post("/download", (req, res) => {
   const { url } = req.body;
   const file = "/tmp/video.mp4";
-
-  exec(`yt-dlp -f mp4 -o "${file}" "${url}"`, (err) => {
+  
+  exec(`yt-dlp -f "best[ext=mp4]/best" -o "${file}" "${url}"`, (err, stdout, stderr) => {
     if (err) {
-      return res.status(500).json({ error: "download_failed" });
+      console.error("yt-dlp error:", stderr);
+      return res.status(500).json({ error: "download_failed", details: stderr });
     }
-
     res.sendFile(file, () => {
       fs.unlinkSync(file);
     });
@@ -21,7 +21,6 @@ app.post("/download", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log("Downloader ativo na porta", PORT);
 });
